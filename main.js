@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { parse } = require("path");
 
 // ============================================================
 // Function 1: getShiftDuration(startTime, endTime)
@@ -7,9 +8,50 @@ const fs = require("fs");
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getShiftDuration(startTime, endTime) {
-    // TODO: Implement this function
-}
+    let s=parseTimeToSeconds(startTime);
+    let e=parseTimeToSeconds(endTime);
+    let d=e-s;
+    let h=Math.floor(d/3600)
+    d-=(h*3600);
+    let m=Math.floor(d/60);
+    if(m===0){
+        m="00";
+    }
+    d-=(m*60);
+    let sec=d;
+    if(sec===0){
+        sec="00";
+    }
+    return `${h}:${m}:${sec}`;
 
+}
+function parseTimeToSeconds(timeStr) {
+    const [clock, suffix] = timeStr.trim().split(" ");
+    let [hour, minute, second] = clock.split(":").map(Number);
+
+    if (suffix.toLowerCase() === "pm" && hour !== 12) hour += 12;
+    if (suffix.toLowerCase() === "am" && hour === 12) hour = 0;
+
+    return (hour * 3600) + (minute * 60) + second;
+}
+function changeTosec(timeStr) {
+    let [hour, minute, second] = timeStr.split(":").map(Number);
+    return (hour * 3600) + (minute * 60) + second;
+}
+function returnToFormat(d){
+   let h=Math.floor(d/3600)
+    d-=(h*3600);
+    let m=Math.floor(d/60);
+    if(m===0){
+        m="00";
+    }
+    d-=(m*60);
+    let sec=d;
+    if(sec===0){
+        sec="00";
+    }
+    return `${h}:${m}:${sec}`;
+}
 // ============================================================
 // Function 2: getIdleTime(startTime, endTime)
 // startTime: (typeof string) formatted as hh:mm:ss am or hh:mm:ss pm
@@ -17,7 +59,18 @@ function getShiftDuration(startTime, endTime) {
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getIdleTime(startTime, endTime) {
-    // TODO: Implement this function
+    let sb=parseTimeToSeconds("8:00:00 am");
+    let se=parseTimeToSeconds("10:00:00 pm");
+    let s=parseTimeToSeconds(startTime);
+    let e=parseTimeToSeconds(endTime);
+    let idle=0;
+    if(s<sb){
+        idle=sb-s;
+    }
+    if(e>se){
+        idle+=(e-se);
+    }
+    return returnToFormat(idle);
 }
 
 // ============================================================
@@ -27,7 +80,10 @@ function getIdleTime(startTime, endTime) {
 // Returns: string formatted as h:mm:ss
 // ============================================================
 function getActiveTime(shiftDuration, idleTime) {
-    // TODO: Implement this function
+    let shift=changeTosec(shiftDuration);
+    let idle=changeTosec(idleTime);
+    let d=shift-idle;
+    return returnToFormat(d);
 }
 
 // ============================================================
@@ -37,7 +93,20 @@ function getActiveTime(shiftDuration, idleTime) {
 // Returns: boolean
 // ============================================================
 function metQuota(date, activeTime) {
-    // TODO: Implement this function
+    let d=date.trim();
+    [year,month,day]=d.split("-").map(Number);
+    let s;
+    if(year==2025 && month==4 && day>=10 && day<=30){
+         s=6*3600;
+    }else{
+         s=(8*3600)+(24*60);
+    }
+    let t=changeTosec(activeTime);
+    if(t>=s){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 // ============================================================
