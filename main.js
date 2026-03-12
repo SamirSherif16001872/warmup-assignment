@@ -116,7 +116,71 @@ function metQuota(date, activeTime) {
 // Returns: object with 10 properties or empty object {}
 // ============================================================
 function addShiftRecord(textFile, shiftObj) {
-    // TODO: Implement this function
+  const content = fs.readFileSync(textFile, "utf-8").trim();
+  const lines = content.split("\n");
+  const header = lines[0];
+
+  let records = [];
+  let id_given=shiftObj.driverID;
+  let date_given=shiftObj.date;
+  // Parse existing records
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",");
+    records.push(cols);
+  }
+  let available=false;
+  for(let i=0;i<records.length;i++){
+    if(records[i][0]===id_given && records[i][2]===date_given){
+        return {};
+    }
+  }
+  for(let i=0;i<records.length;i++){
+    if(records[i][0]===id_given){
+        available=true;
+    }
+  }
+  const shiftDuration = getShiftDuration(shiftObj.startTime, shiftObj.endTime);
+  const idleTime = getIdleTime(shiftObj.startTime, shiftObj.endTime);
+  const activeTime = getActiveTime(shiftDuration, idleTime);
+  const quotaMet = metQuota(shiftObj.date, activeTime);
+  const newRecord = [
+    shiftObj.driverID,
+    shiftObj.driverName,
+    shiftObj.date,
+    shiftObj.startTime,
+    shiftObj.endTime,
+    shiftDuration,
+    idleTime,
+    activeTime,
+    quotaMet,
+    false
+  ];
+  if(available==true){
+    let pos=-1
+    for(let i=0;i<records.length;i++){
+      if(records[i][0]===id_given){
+        pos=i;
+      }
+    }
+    records.splice(pos + 1, 0, newRecord);
+  }else{
+    records.push(newRecord); 
+  }
+  const newFileContent = [header, ...records.map(r => r.join(","))].join("\n");
+  fs.writeFileSync(textFile, newFileContent, "utf-8");
+  
+  return {
+    driverID: newRecord[0],
+    driverName: newRecord[1],
+    date: newRecord[2],
+    startTime: newRecord[3],
+    endTime: newRecord[4],
+    shiftDuration: newRecord[5],
+    idleTime: newRecord[6],
+    activeTime: newRecord[7],
+    metQuota: newRecord[8],
+    hasBonus: newRecord[9]
+  };
 }
 
 // ============================================================
@@ -128,7 +192,25 @@ function addShiftRecord(textFile, shiftObj) {
 // Returns: nothing (void)
 // ============================================================
 function setBonus(textFile, driverID, date, newValue) {
-    // TODO: Implement this function
+  const content = fs.readFileSync(textFile, "utf-8").trim();
+  const lines = content.split("\n");
+  const header = lines[0];
+
+  let records = [];
+  // Parse existing records
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",");
+    records.push(cols);
+  }
+  for(let i=0;i<records.length;i++){
+    if(records[i][0]===driverID && records[i][2]===date){
+        records[i][9]=newValue;
+        break;
+    }
+  }
+  const newFileContent = [header, ...records.map(r => r.join(","))].join("\n");
+  fs.writeFileSync(textFile, newFileContent, "utf-8");
+  
 }
 
 // ============================================================
