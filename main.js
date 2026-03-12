@@ -290,7 +290,51 @@ function getTotalActiveHoursPerMonth(textFile, driverID, month) {
 // Returns: string formatted as hhh:mm:ss
 // ============================================================
 function getRequiredHoursPerMonth(textFile, rateFile, bonusCount, driverID, month) {
-  
+  const lines = fs.readFileSync(rateFile, "utf-8").trim().split("\n");
+    let rate = [];
+    for (let i = 0; i < lines.length; i++) {
+        rate.push(lines[i].split(","));
+    }
+
+    const content = fs.readFileSync(textFile, "utf-8").trim();
+  const lines1 = content.split("\n");
+  const header = lines1[0];
+
+  let records = [];
+  // Parse existing records
+  for (let i = 1; i < lines1.length; i++) {
+    const cols = lines1[i].split(",");
+    records.push(cols);
+  }
+  let offday;
+  let days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  for(let i=0;i<rate.length;i++){
+    if(rate[i][0]==driverID){
+      offday=rate[i][1];
+    }
+  }
+  let recSec=0;
+  for(let i=0;i<records.length;i++){
+    let [y,m,d]=records[i][2].split('-').map(Number);
+    if(records[i][0]==driverID && m==month){
+        let dat = new Date(records[i][2]);
+        let dayName = days[dat.getDay()];
+        if(dayName==offday){
+            continue;
+        }
+        if(y==2025 && m==4 && d>=10 && d<=30){
+         recSec+=6*3600;
+        }else{
+         recSec+=(8*3600)+(24*60);
+        }
+    }
+    
+  }
+   recSec-=(bonusCount*2*3600);
+    if(recSec<0){
+        recSec=0;
+    }
+    return returnToFormat(recSec);
 
 }
 
