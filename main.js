@@ -290,7 +290,8 @@ function getTotalActiveHoursPerMonth(textFile, driverID, month) {
 // Returns: string formatted as hhh:mm:ss
 // ============================================================
 function getRequiredHoursPerMonth(textFile, rateFile, bonusCount, driverID, month) {
-    // TODO: Implement this function
+  
+
 }
 
 // ============================================================
@@ -302,7 +303,42 @@ function getRequiredHoursPerMonth(textFile, rateFile, bonusCount, driverID, mont
 // Returns: integer (net pay)
 // ============================================================
 function getNetPay(driverID, actualHours, requiredHours, rateFile) {
-    // TODO: Implement this function
+  const lines = fs.readFileSync(rateFile, "utf-8").trim().split("\n");
+    let rate = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        rate.push(lines[i].split(","));
+    }
+
+    let tier = -1;
+    let bp = 0;
+
+    for (let i = 0; i < rate.length; i++) {
+        if (rate[i][0] === driverID) {
+            bp = parseInt(rate[i][2]);
+            tier = parseInt(rate[i][3]);
+            break;
+        }
+    }
+  
+  let missingHours;
+  if(tier==1){
+    missingHours=50*3600;
+  }else if(tier==2){
+    missingHours=20*3600;
+  }else if(tier==3){
+    missingHours=10*3600;
+  }else {
+    missingHours=3*3600;
+  }
+  let m=changeTosec(requiredHours)-(changeTosec(actualHours)+missingHours);
+  let dRPH=Math.floor(bp/185);
+  if(m<=0){
+    m=0;
+  }
+  let sd=(Math.floor(m/3600))*dRPH;
+  let r= bp-sd;
+  return r;
 }
 
 module.exports = {
