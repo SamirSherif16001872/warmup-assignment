@@ -222,6 +222,33 @@ function setBonus(textFile, driverID, date, newValue) {
 // ============================================================
 function countBonusPerMonth(textFile, driverID, month) {
     // TODO: Implement this function
+    const content = fs.readFileSync(textFile, "utf-8").trim();
+  const lines = content.split("\n");
+  const header = lines[0];
+
+  let records = [];
+  // Parse existing records
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",");
+    records.push(cols);
+  }
+  available=false;
+  for(let i=0;i<records.length;i++){
+    if(records[i][0]===driverID){
+        available=true;
+    }
+  }
+  if(available==false){
+    return -1;
+  }
+  let c=0;
+  for(let i=0;i<records.length;i++){
+    let d=records[i][2].split('-');
+    if(records[i][0]===driverID && parseInt(d[1])===parseInt(month) && records[i][9].trim().toLowerCase().trim() === "true"){
+        c++;
+    }
+  }
+  return c;
 }
 
 // ============================================================
@@ -233,6 +260,24 @@ function countBonusPerMonth(textFile, driverID, month) {
 // ============================================================
 function getTotalActiveHoursPerMonth(textFile, driverID, month) {
     // TODO: Implement this function
+  const content = fs.readFileSync(textFile, "utf-8").trim();
+  const lines = content.split("\n");
+  const header = lines[0];
+
+  let records = [];
+  // Parse existing records
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",");
+    records.push(cols);
+  }
+  let total=0;
+  for(let i=0;i<records.length;i++){
+    let d=records[i][2].split('-');
+    if(records[i][0]===driverID && parseInt(d[1])===parseInt(month)){
+        total +=changeTosec(getActiveTime(records[i][5],records[i][6]));
+    }
+  }
+  return returnToFormat(total);
 }
 
 // ============================================================
